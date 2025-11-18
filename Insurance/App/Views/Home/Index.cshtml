@@ -1,0 +1,81 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<main>
+    <h2>Premium Calculator</h2>
+    <form id="premiumForm">
+        <div>
+            <label>Name</label><br />
+            <input type="text" id="name" required />
+        </div>
+        <div>
+            <label>Age Next Birthday</label><br />
+            <input type="number" id="age" min="0" required />
+        </div>
+        <div>
+            <label>Date of Birth (mm/YYYY)</label><br />
+            <input type="text" id="dob" placeholder="mm/YYYY" pattern="(0[1-9]|1[0-2])\/\\d{4}" required />
+        </div>
+        <div>
+            <label>Usual Occupation</label><br />
+            <select id="occupation" required>
+                <option value="Cleaner">Cleaner</option>
+                <option value="Doctor">Doctor</option>
+                <option value="Author">Author</option>
+                <option value="Farmer">Farmer</option>
+                <option value="Mechanic">Mechanic</option>
+                <option value="Florist">Florist</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div>
+            <label>Death - Sum Insured</label><br />
+            <input type="number" id="deathCover" min="0" step="0.01" required />
+        </div>
+
+        <div>
+            <p>Monthly Premium: <span id="monthlyPremium">-</span></p>
+        </div>
+    </form>
+
+    <script>
+        function calculatePremium() {
+            var payload = {
+                Name: $('#name').val(),
+                AgeNextBirthday: parseInt($('#age').val(), 10) || 0,
+                DateOfBirth: $('#dob').val(),
+                Occupation: $('#occupation').val(),
+                DeathCoverAmount: parseFloat($('#deathCover').val()) || 0
+            };
+
+            // only call when all required fields have a value
+            if (!payload.Name || !payload.AgeNextBirthday || !payload.DateOfBirth || !payload.Occupation || !payload.DeathCoverAmount) {
+                $('#monthlyPremium').text('-');
+                return;
+            }
+
+            $.ajax({
+                url: '/api/premium/calculate',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload)
+            }).done(function (res) {
+                $('#monthlyPremium').text(res.MonthlyPremium.toFixed(2));
+            }).fail(function (xhr) {
+                $('#monthlyPremium').text('Error');
+            });
+        }
+
+        // trigger calculation whenever occupation changes
+        $('#occupation').on('change', function () {
+            calculatePremium();
+        });
+
+        // Also trigger when deathCover or age changes for better UX
+        $('#deathCover, #age, #name, #dob').on('change keyup', function () {
+            calculatePremium();
+        });
+
+    </script>
+</main>
