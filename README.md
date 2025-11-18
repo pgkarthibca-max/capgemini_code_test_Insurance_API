@@ -98,8 +98,34 @@ Edit in appsettings.json:
   "DefaultConnection": "Host=localhost;Database=InsuranceDB;Username=postgres;Password=yourpassword"
 }
 
-
 ### Frontend Setup (React)
 cd insurance-ui
 npm install
 npm start
+
+
+## Additional Design Patterns Added
+
+Per your request, I replaced and extended several parts of the project with common enterprise design patterns: **Factory**, **Repository**, **Unit of Work**, and a minimal **Dependency Injection** container. These are implemented in a lightweight manner so you can run the project without external DI libraries.
+
+### What I added (high level)
+
+1. **Factory**
+   - `IOccupationRatingProvider` - abstraction to resolve occupation -> rating and factor.
+   - `OccupationRatingFactory` - concrete factory implementing the mapping logic.
+
+2. **Repository + Unit of Work (EF-based)**
+   - `IRepository<T>` / `EfRepository<T>` - generic repository for CRUD operations.
+   - `IUnitOfWork` / `EfUnitOfWork` - transaction boundary and commit handling.
+   - `PremiumDbContext` - EF `DbContext` with `DbSet<MemberPremium>`.
+   - `MemberPremium` entity mapping matching suggested DB schema.
+
+3. **Dependency Injection (lightweight)**
+   - `IServiceRegistry` and `ServiceContainer` - a tiny DI container to register singletons/transients and resolve by type.
+   - `Bootstrapper` (or `Global.asax` wiring example) to register services at app start.
+
+4. **Refactoring Controllers & Services**
+   - Controllers (Web API) now receive dependencies (calculator service, occupation provider, unit of work) via constructor injection.
+   - A `PremiumCalculatorService` implements business logic using the strategy and repository patterns and persists calculated results via UnitOfWork.
+
+
